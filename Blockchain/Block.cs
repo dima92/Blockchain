@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -7,19 +10,25 @@ namespace Blockchain
     /// <summary>
     /// Блок данных.
     /// </summary>
+    [DataContract]
     public class Block
     {
         //Идентификатор
         public int Id { get; private set; }
         //Данные
+        [DataMember]
         public string Data { get; private set; }
         //Дата и время создания
+        [DataMember]
         public DateTime Created { get; private set; }
         //Хэш блока
+        [DataMember]
         public string Hash { get; private set; }
         //Хэш предыдущего блока
+        [DataMember]
         public string PreviousHash { get; private set; }
         //Имя пользователя
+        [DataMember]
         public string User { get; set; }
 
         //Конструктор для генезис-блока
@@ -99,6 +108,36 @@ namespace Blockchain
         public override string ToString()
         {
             return Data;
+        }
+
+        /// <summary>
+        /// Выполнить сериализацию объекта в json строку
+        /// </summary>
+        /// <returns></returns>
+        public string Serialize()
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(Block));
+            using (var ms = new MemoryStream())
+            {
+                jsonSerializer.WriteObject(ms, this);
+                var result = Encoding.UTF8.GetString(ms.ToArray());
+                return result;
+            }
+        }
+
+        /// <summary>
+        ///  Выполнить десериализацию объекта Block из json строки 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static Block Deserialize(string json)
+        {
+            var jsonSerializer = new DataContractJsonSerializer(typeof(Block));
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                var result = (Block)jsonSerializer.ReadObject(ms);
+                return result;
+            }
         }
     }
 }
